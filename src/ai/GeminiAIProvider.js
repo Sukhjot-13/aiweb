@@ -357,6 +357,103 @@ Return ONLY valid JSON, no markdown formatting.`;
   }
 
   /**
+   * Decide next action based on current state (Phase 5)
+   * @param {Object} context - Execution context
+   * @returns {Promise<Object>} Decision
+   */
+  async decideNextAction(context) {
+    const startTime = Date.now();
+
+    try {
+      const { buildDecisionPrompt } = await import('./prompts/decisionPrompts.js');
+      const prompt = buildDecisionPrompt(context);
+      const result = await generateContent(prompt);
+      const response = this._extractTextFromResponse(result);
+
+      // Debug log
+      console.log('=== GEMINI DECISION ===');
+      console.log(response);
+      console.log('======================');
+
+      const decision = this._parseDecisionResponse(response);
+
+      this._trackRequest(true, Date.now() - startTime);
+      this._trackTokens(this._estimateTokens(prompt), this._estimateTokens(response));
+
+      return decision;
+    } catch (error) {
+      this._trackRequest(false, Date.now() - startTime);
+      throw new Error(`Gemini decision failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Analyze if goal is achieved (Phase 5)
+   * @param {Object} context - Execution context
+   * @returns {Promise<Object>} Goal analysis
+   */
+  async analyzeGoalCompletion(context) {
+    const startTime = Date.now();
+
+    try {
+      const { buildGoalCompletionPrompt } = await import('./prompts/decisionPrompts.js');
+      const prompt = buildGoalCompletionPrompt(context);
+      const result = await generateContent(prompt);
+      const response = this._extractTextFromResponse(result);
+
+      const analysis = this._parseGoalCompletionResponse(response);
+
+      this._trackRequest(true, Date.now() - startTime);
+      this._trackTokens(this._estimateTokens(prompt), this._estimateTokens(response));
+
+      return analysis;
+    } catch (error) {
+      this._trackRequest(false, Date.now() - startTime);
+      throw new Error(`Goal completion analysis failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Parse decision response from Gemini
+   * @private
+   */
+  _parseDecisionResponse(response) {
+    try {
+      const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+
+      return {
+        goalAchieved: parsed.goalAchieved || false,
+        reasoning: parsed.reasoning || '',
+        nextAction: parsed.nextAction || { type: 'NONE', params: {} },
+        dataToExtract: parsed.dataToExtract || {},
+      };
+    } catch (error) {
+      throw new Error(`Failed to parse decision response: ${error.message}`);
+    }
+  }
+
+  /**
+   * Parse goal completion response
+   * @private
+   */
+  _parseGoalCompletionResponse(response) {
+    try {
+      const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+
+      return {
+        goalAchieved: parsed.goalAchieved || false,
+        confidence: parsed.confidence || 0.5,
+        reasoning: parsed.reasoning || '',
+        missingData: parsed.missingData || null,
+      };
+    } catch (error) {
+      throw new Error(`Failed to parse goal completion response: ${error.message}`);
+    }
+  }
+
+  /**
    * Estimate token count (rough approximation)
    * @private
    */

@@ -6,6 +6,7 @@ import { ProviderRegistry } from '../../../data/providers/ProviderRegistry.js';
 import { MockBrowserProvider } from '../../../data/providers/MockBrowserProvider.js';
 import { MockScraperProvider } from '../../../data/providers/MockScraperProvider.js';
 import { MockApiProvider } from '../../../data/providers/MockApiProvider.js';
+import { PuppeteerBrowserProvider } from '../../../data/providers/PuppeteerBrowserProvider.js';
 import { StrategyType } from '../../../models/AutomationStrategy.js';
 
 
@@ -30,9 +31,18 @@ export async function POST(request) {
 
     // Register execution providers
     const registry = ProviderRegistry.getInstance();
+    const useRealBrowser = process.env.USE_REAL_BROWSER === 'true';
+
+    if (useRealBrowser) {
+      console.log('🌐 Using REAL browser (Puppeteer)');
+      registry.register(new PuppeteerBrowserProvider({ headless: true }), StrategyType.BROWSER);
+    } else {
+      console.log('🎭 Using MOCK providers');
+      registry.register(new MockBrowserProvider({ simulatedLatency: 500 }), StrategyType.BROWSER);
+    }
+    
     registry.register(new MockApiProvider({ simulatedLatency: 100 }), StrategyType.API);
     registry.register(new MockScraperProvider({ simulatedLatency: 200 }), StrategyType.SCRAPER);
-    registry.register(new MockBrowserProvider({ simulatedLatency: 500 }), StrategyType.BROWSER);
 
     // Create executor and orchestrator
     // TaskExecutor creates its own StrategySelector internally
@@ -53,9 +63,18 @@ export async function POST(request) {
       });
     });
 
-    // Execute the query
+    // Execute the query with strategy forcing if real browser
     const startTime = Date.now();
-    const result = await orchestrator.planAndExecute(query);
+    const executionOptions = {};
+    
+    // FORCE BROWSER strategy when real browser is enabled
+    if (useRealBrowser) {
+      executionOptions.criteria = {
+        excludeStrategies: ['API', 'SCRAPER'], // Force BROWSER only
+      };
+    }
+    
+    const result = await orchestrator.planAndExecute(query, executionOptions);
     const executionTime = Date.now() - startTime;
 
     console.log('Execution completed:', result.status);
@@ -65,6 +84,12 @@ export async function POST(request) {
     const cacheStats = orchestrator.getCacheStats();
 
     // Format response
+    // Extract data from successful steps
+    const extractedData = result.result?.successfulSteps?.map(step => ({
+      step: step.stepDescription,
+      data: step.data
+    })) || [];
+
     return NextResponse.json({
       success: result.status === 'COMPLETED',
       status: result.status,
@@ -78,6 +103,7 @@ export async function POST(request) {
         })),
       },
       result: result.result,
+      extractedData,
       error: (result.status === 'FAILURE' || result.status === 'FAILED') ? {
         message: result.error || 'Task execution failed',
         details: result.executionState?.error || null,

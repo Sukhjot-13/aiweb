@@ -3,7 +3,7 @@
  * Selects optimal provider based on action requirements and provider capabilities.
  */
 
-import { AutomationStrategy, DEFAULT_STRATEGY_PRIORITY } from '../models/AutomationStrategy.js';
+import { AutomationStrategy, StrategyType, DEFAULT_STRATEGY_PRIORITY } from '../models/AutomationStrategy.js';
 import { ProviderRegistry } from '../data/providers/ProviderRegistry.js';
 import { ActionType } from '../models/AutomationAction.js';
 import { ErrorCategory } from '../models/ExecutionResult.js';
@@ -36,6 +36,19 @@ class StrategySelector {
     // Check for forced strategy
     if (context.forceStrategy) {
       return this._selectForcedStrategy(context.forceStrategy);
+    }
+
+    // **FORCE BROWSER when USE_REAL_BROWSER=true**
+    const useRealBrowser = process.env.USE_REAL_BROWSER === 'true';
+    if (useRealBrowser) {
+      const browserProvider = this.providerRegistry.getProvider(StrategyType.BROWSER);
+      if (browserProvider) {
+        console.log(`🎯 FORCING BROWSER strategy for action: ${action.type}`);
+        return {
+          strategy: StrategyType.BROWSER,
+          provider: browserProvider,
+        };
+      }
     }
 
     // Build selection criteria from action and context
