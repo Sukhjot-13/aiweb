@@ -150,8 +150,31 @@ class BaseAIProvider {
   _getConfig(key, defaultValue = null) {
     return this.config[key] !== undefined ? this.config[key] : defaultValue;
   }
+
+  /**
+   * Track request execution
+   * @param {boolean} success - Whether request succeeded
+   * @param {number} [durationMs=0] - Request duration
+   * @protected
+   */
+  _trackRequest(success, durationMs = 0) {
+    this.stats.requestCount += 1;
+    if (success) {
+      this.stats.successCount += 1;
+    } else {
+      this.stats.failureCount += 1;
+    }
+  }
+
+  /**
+   * Track token usage
+   * @param {number} inputTokens - Input tokens
+   * @param {number} outputTokens - Output tokens
+   * @protected
+   */
+  _trackTokens(inputTokens, outputTokens) {
+    this.stats.totalTokens += (inputTokens || 0) + (outputTokens || 0);
+  }
 }
 
-module.exports = {
-  BaseAIProvider,
-};
+export default BaseAIProvider;

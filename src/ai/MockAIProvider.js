@@ -3,8 +3,9 @@
  * Provides predefined plans for common automation goals without requiring API keys.
  */
 
-const { BaseAIProvider } = require('./BaseAIProvider');
-const { AutomationAction } = require('../models/AutomationAction');
+import BaseAIProvider from './BaseAIProvider.js';
+import { AutomationAction } from '../models/AutomationAction.js';
+
 
 /**
  * MockAIProvider class
@@ -347,4 +348,4 @@ class MockAIProvider extends BaseAIProvider {
   }
 }
 
-module.exports = { MockAIProvider };
+export default MockAIProvider;
