@@ -63,6 +63,8 @@ class Task {
     this.currentStepIndex = 0;
     this.result = null;
     this.error = null;
+    this.inputRequest = null; // Current input request (Phase 3)
+    this.providedInput = null; // User-provided input (Phase 3)
     this.metadata = {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
