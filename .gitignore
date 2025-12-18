@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+*.test.results.json
+.nyc_output
 
 # next.js
 /.next/
@@ -39,3 +41,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary storage (Phase 4+)
+/storage
+/data/temp
+*.json.tmp
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+
