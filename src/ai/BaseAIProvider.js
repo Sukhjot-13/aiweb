@@ -87,6 +87,26 @@ class BaseAIProvider {
   }
 
   /**
+   * Decides next action based on current state (Phase 5)
+   * @abstract
+   * @param {Object} context - Execution context
+   * @returns {Promise<Object>} Decision object
+   */
+  async decideNextAction(_context) {
+    throw new Error('decideNextAction() must be implemented by child class');
+  }
+
+  /**
+   * Analyzes if goal is achieved (Phase 5)
+   * @abstract
+   * @param {Object} context - Execution context
+   * @returns {Promise<Object>} Goal completion analysis
+   */
+  async analyzeGoalCompletion(_context) {
+    throw new Error('analyzeGoalCompletion() must be implemented by child class');
+  }
+
+  /**
    * Gets provider name
    * @returns {string} Provider name
    */
