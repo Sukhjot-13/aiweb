@@ -3,9 +3,9 @@
  * Orchestrates sequential step execution with state management and progress tracking.
  */
 
-const { Task, TaskStatus } = require('../models/Task');
-const { ExecutionResult } = require('../models/ExecutionResult');
-const { StepExecutor } = require('./StepExecutor');
+import { Task, TaskStatus } from '../models/Task.js';
+import { ExecutionResult } from '../models/ExecutionResult.js';
+import { StepExecutor } from './StepExecutor.js';
 
 /**
  * TaskExecutor service
@@ -253,4 +253,4 @@ class TaskExecutor {
   }
 }
 
-module.exports = { TaskExecutor };
+export { TaskExecutor };

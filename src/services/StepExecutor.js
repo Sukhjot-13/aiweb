@@ -3,9 +3,9 @@
  * Orchestrates action execution with provider strategy selection and fallback.
  */
 
-const { ExecutionResult } = require('../models/ExecutionResult');
-const { StrategySelector } = require('./StrategySelector');
-const { ActionExecutor } = require('./ActionExecutor');
+import { ExecutionResult } from '../models/ExecutionResult.js';
+import { StrategySelector } from './StrategySelector.js';
+import { ActionExecutor } from './ActionExecutor.js';
 
 /**
  * StepExecutor service
@@ -207,4 +207,4 @@ class StepExecutor {
   }
 }
 
-module.exports = { StepExecutor };
+export { StepExecutor };

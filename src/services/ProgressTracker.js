@@ -3,8 +3,8 @@
  * Tracks task execution progress and emits progress events.
  */
 
-const { EventEmitter } = require('../utils/EventEmitter');
-const { ProgressEvent, ProgressEventType } = require('../models/ProgressEvent');
+import { EventEmitter } from '../utils/EventEmitter.js';
+import { ProgressEvent, ProgressEventType } from '../models/ProgressEvent.js';
 
 /**
  * ProgressTracker class
@@ -320,4 +320,4 @@ class ProgressTracker {
   }
 }
 
-module.exports = { ProgressTracker };
+export { ProgressTracker };

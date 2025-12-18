@@ -11,6 +11,8 @@
 import BaseAIProvider from './BaseAIProvider.js';
 import { getGenerativeModel, generateContent } from './clients/GeminiClient.js';
 import AIConfig from '../config/aiConfig.js';
+import { AutomationAction } from '../models/AutomationAction.js';
+
 
 /**
  * Gemini AI Provider
@@ -124,33 +126,56 @@ export default class GeminiAIProvider extends BaseAIProvider {
 
 ${context.hints ? `**Context**: ${context.hints}` : ''}
 
-Generate a task plan with these steps:
-1. Identify the main actions needed (navigate, search, extract, compare, etc.)
-2. Break down into atomic steps
-3. Suggest appropriate selectors or search strategies
+Generate a task plan with atomic steps. Use these exact action types and parameters:
 
-Respond with a JSON object in this format:
+**NAVIGATE** - Navigate to a URL
+  params: { "url": "https://example.com" }
+
+**CLICK** - Click an element  
+  params: { "selector": ".button-class" }
+
+**TYPE** - Type text into an input
+  params: { "selector": "#input-id", "text": "search query" }
+
+**EXTRACT_TEXT** - Extract text from elements
+  params: { "selector": ".product-price", "multiple": true }
+
+**SEARCH** - Search for something
+  params: { "query": "product name", "maxResults": 10 }
+
+**WAIT** - Wait for a duration or element
+  params: { "duration": 1000 } OR { "selector": ".results" }
+
+Respond with a JSON object in this EXACT format:
 {
   "steps": [
     {
       "action": "NAVIGATE",
-      "description": "Navigate to website",
-      "params": { "url": "https://example.com" }
+      "description": "Navigate to Amazon",
+      "params": { "url": "https://amazon.com" }
     },
     {
-      "action": "SEARCH",
+      "action": "TYPE",
       "description": "Search for product",
-      "params": { "query": "product name", "selector": "input[name='search']" }
+      "params": { "selector": "#search-input", "text": "iPhone 14" }
+    },
+    {
+      "action": "EXTRACT_TEXT",
+      "description": "Extract prices",
+      "params": { "selector": ".price", "multiple": true }
     }
   ],
   "confidence": 0.9,
-  "reasoning": "Brief explanation of approach"
+  "reasoning": "Brief explanation"
 }
 
-Available actions: NAVIGATE, CLICK, TYPE, EXTRACT, SEARCH, WAIT, SCROLL
+CRITICAL RULES:
+- Use ONLY these action types: NAVIGATE, CLICK, TYPE, EXTRACT_TEXT, SEARCH, WAIT
+- Use "params" not "parameters"
+- For TYPE action: use "text" and "selector" parameters
+- For EXTRACT actions: use EXTRACT_TEXT not just EXTRACT
+- Return ONLY valid JSON, no markdown formatting`;}
 
-Return ONLY valid JSON, no markdown formatting.`;
-  }
 
   /**
    * Build selector suggestion prompt
@@ -234,10 +259,50 @@ Return ONLY valid JSON, no markdown formatting.`;
     try {
       // Remove markdown code blocks if present
       const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      // Debug: Log what Gemini actually returned
+      console.log('=== GEMINI RESPONSE ===');
+      console.log(cleaned);
+      console.log('======================');
+      
       const parsed = JSON.parse(cleaned);
 
+      // Convert Gemini's simple format to proper AutomationAction instances
+      const steps = (parsed.steps || []).map((step, index) => {
+        // Gemini returns: { "action": "NAVIGATE", "params": {...} }
+        // We need to create: AutomationAction instance
+        
+        const actionType = typeof step.action === 'string' ? step.action : step.action?.type;
+        const params = step.params || step.parameters || step.action?.parameters || {};
+
+        if (!actionType) {
+          console.warn(`Step ${index} missing action type, skipping`);
+          return null;
+        }
+
+        // Create actual AutomationAction instance
+        let action;
+        try {
+          action = new AutomationAction({
+            type: actionType,
+            parameters: params,
+          });
+        } catch (error) {
+          console.warn(`Failed to create action for step ${index}: ${error.message}`);
+          return null;
+        }
+
+        return {
+          action,
+          description: step.description || `Execute ${actionType}`,
+          expectedOutput: step.expectedOutput || {},
+          failureConditions: step.failureConditions || [],
+          metadata: step.metadata || {},
+        };
+      }).filter(step => step !== null); // Remove any null steps
+
       return {
-        steps: parsed.steps || [],
+        steps,
         confidence: parsed.confidence || 0.5,
         reasoning: parsed.reasoning || '',
         metadata: {
@@ -251,6 +316,7 @@ Return ONLY valid JSON, no markdown formatting.`;
       throw new Error(`Failed to parse Gemini plan response: ${error.message}`);
     }
   }
+
 
   /**
    * Parse selector response

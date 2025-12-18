@@ -3,7 +3,9 @@
  * Handles action validation, execution, and result transformation.
  */
 
-const { ExecutionResult, ErrorCategory } = require('../models/ExecutionResult');
+import { ExecutionResult, ErrorCategory } from '../models/ExecutionResult.js';
+import { ProviderError, ActionNotSupportedError } from '../data/providers/BaseProvider.js';
+
 
 /**
  * ActionExecutor service
@@ -132,9 +134,9 @@ class ActionExecutor {
    */
   _handleExecutionError(error, action, provider) {
     const errorMessage = error.message || 'Unknown execution error';
-    const { ProviderError, ActionNotSupportedError } = require('../data/providers/BaseProvider');
 
     let errorCategory = ErrorCategory.UNKNOWN;
+
 
     if (error instanceof ActionNotSupportedError) {
       errorCategory = ErrorCategory.PROVIDER_ERROR;
@@ -155,4 +157,4 @@ class ActionExecutor {
   }
 }
 
-module.exports = { ActionExecutor };
+export { ActionExecutor };

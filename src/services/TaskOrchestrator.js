@@ -3,10 +3,11 @@
  * Coordinates goal parsing, task planning, and execution with progress tracking.
  */
 
-const { GoalParser } = require('./GoalParser');
-const { TaskPlanner } = require('./TaskPlanner');
-const { TaskExecutor } = require('./TaskExecutor');
-const { ProgressTracker } = require('./ProgressTracker');
+import { GoalParser } from './GoalParser.js';
+import { TaskPlanner } from './TaskPlanner.js';
+import { TaskExecutor } from './TaskExecutor.js';
+import { ProgressTracker } from './ProgressTracker.js';
+
 
 /**
  * TaskOrchestrator class
@@ -231,4 +232,5 @@ class TaskOrchestrator {
   }
 }
 
-module.exports = { TaskOrchestrator };
+export default TaskOrchestrator;
+

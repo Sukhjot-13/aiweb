@@ -162,4 +162,4 @@ class GoalParser {
   }
 }
 
-module.exports = { GoalParser };
+export { GoalParser };

@@ -347,9 +347,10 @@ class AutomationAction {
   }
 }
 
-module.exports = {
+export {
   AutomationAction,
   ActionType,
   ActionParameterSchemas,
   ActionOutputSchemas,
 };
+

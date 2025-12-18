@@ -3,8 +3,12 @@
  * Selects optimal provider based on action requirements and provider capabilities.
  */
 
-const { AutomationStrategy, DEFAULT_STRATEGY_PRIORITY } = require('../models/AutomationStrategy');
-const { ProviderRegistry } = require('../data/providers/ProviderRegistry');
+import { AutomationStrategy, DEFAULT_STRATEGY_PRIORITY } from '../models/AutomationStrategy.js';
+import { ProviderRegistry } from '../data/providers/ProviderRegistry.js';
+import { ActionType } from '../models/AutomationAction.js';
+import { ErrorCategory } from '../models/ExecutionResult.js';
+
+
 
 /**
  * StrategySelector service
@@ -106,8 +110,6 @@ class StrategySelector {
     };
 
     // Override based on action type
-    const { ActionType } = require('../models/AutomationAction');
-    
     if (action.type === ActionType.CLICK || action.type === ActionType.TYPE) {
       baseCriteria.requiresInteraction = true;
     }
@@ -179,8 +181,6 @@ class StrategySelector {
    * @private
    */
   _isRetryableError(error) {
-    const { ErrorCategory } = require('../models/ExecutionResult');
-    
     const retryableCategories = [
       ErrorCategory.NETWORK,
       ErrorCategory.TIMEOUT,
@@ -222,4 +222,4 @@ class StrategySelector {
   }
 }
 
-module.exports = { StrategySelector };
+export { StrategySelector };

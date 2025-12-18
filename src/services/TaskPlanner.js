@@ -3,8 +3,8 @@
  * Converts parsed goals into executable task plans using AI providers.
  */
 
-const { Task } = require('../models/Task');
-const { AutomationStep } = require('../models/AutomationStep');
+import { Task } from '../models/Task.js';
+import { AutomationStep } from '../models/AutomationStep.js';
 
 /**
  * TaskPlanner class
@@ -194,4 +194,4 @@ class TaskPlanner {
   }
 }
 
-module.exports = { TaskPlanner };
+export { TaskPlanner };
