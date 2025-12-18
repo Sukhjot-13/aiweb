@@ -89,18 +89,20 @@ Until the **AI Web Automation core** is stable, testable, and reusable.
 - Convert user goals into executable steps
 - Handle retries & fallbacks
 - Track progress
+- **Full AI-Powered Automation**: AI handles all data extraction and decision-making (no selectors)
 
 ### Key Concepts
 
 - **Task**: High-level goal ("Find cheapest phone")
 - **Step**: Atomic action ("Search Amazon")
-- **Strategy**: API → Scraper → Browser
+- **Strategy**: **AI Extraction & Decisions** (replacing manual selectors)
 
 ### Deliverables
 
 - TaskOrchestrator service
 - Step execution model
 - Progress event system
+- AIExtractionProvider service (Phase 2.5)
 
 ---
 

@@ -1,521 +1,380 @@
-# Phase 1: AI Web Automation Core - Detailed Task Breakdown
+# Phase 2: Task Orchestration Engine - Detailed Task Breakdown
 
-> **Goal**: Build a headless, UI-less, auth-less, deterministic automation engine capable of browsing the web and extracting structured data.
+> **Goal**: Build intelligent task orchestration that converts user goals into executable automation steps with retry/fallback strategies and progress tracking.
 
 ---
 
-## 1. Domain Models & Core Types
+## Overview
 
-### 1.1 Automation Action Model
+Phase 2 builds on Phase 1's execution engine by adding:
 
-- [ ] Create `src/models/AutomationAction.js`
-  - [ ] Define action types enum (NAVIGATE, CLICK, TYPE, EXTRACT_TEXT, EXTRACT_ATTRIBUTE, WAIT, SEARCH)
-  - [ ] Define action base structure (id, type, parameters, metadata)
-  - [ ] Add input parameter schemas per action type
-  - [ ] Add output schemas per action type
-  - [ ] Implement validation function for action integrity
-  - [ ] Add JSDoc documentation with examples
+- **Goal-to-Task conversion** (AI-powered planning)
+- **Advanced retry strategies** (beyond basic provider fallback)
+- **Progress event system** (real-time task monitoring)
+- **Task templates** (reusable automation patterns)
 
-### 1.2 Automation Step Model
+---
 
-- [ ] Create `src/models/AutomationStep.js`
-  - [ ] Define step structure (id, action, input, expectedOutput, failureConditions)
-  - [ ] Add step status enum (PENDING, RUNNING, SUCCESS, FAILED, SKIPPED)
-  - [ ] Implement step validation function
-  - [ ] Add context metadata support (previousResults, environment)
+## 1. Task Orchestrator Core
+
+### 1.1 TaskOrchestrator Service
+
+- [ ] Create `src/services/TaskOrchestrator.js`
+  - [ ] Implement `planTask(userGoal, context)` method
+  - [ ] Implement `executeTask(taskPlan)` method
+  - [ ] Add task validation before execution
+  - [ ] Implement progress event emission
+  - [ ] Add pause/resume orchestration
   - [ ] Add JSDoc documentation
 
-### 1.3 Automation Strategy Model
+### 1.2 Goal Parser
 
-- [ ] Create `src/models/AutomationStrategy.js`
-  - [ ] Define strategy types enum (API, SCRAPER, BROWSER)
-  - [ ] Define priority ordering (API → SCRAPER → BROWSER)
-  - [ ] Add strategy selection criteria schema
-  - [ ] Add fallback rules definition
+- [ ] Create `src/services/GoalParser.js`
+  - [ ] Parse natural language goals
+  - [ ] Extract intent (search, compare, extract, etc.)
+  - [ ] Extract entities (product names, websites, etc.)
+  - [ ] Extract constraints (price range, location, etc.)
+  - [ ] Return structured goal object
   - [ ] Add JSDoc documentation
 
-### 1.4 Task Model
+### 1.3 Task Planner (AI Integration)
 
-- [ ] Create `src/models/Task.js`
-  - [ ] Define task structure (id, goal, steps, status, createdAt, updatedAt)
-  - [ ] Define task status enum (PENDING, RUNNING, PAUSED, WAITING_FOR_INPUT, FAILED, COMPLETED)
-  - [ ] Add step management methods (addStep, updateStep, getNextStep)
-  - [ ] Add state transition validation
-  - [ ] Implement serialization/deserialization methods
-  - [ ] Add JSDoc documentation
-
-### 1.5 Execution Result Model
-
-- [ ] Create `src/models/ExecutionResult.js`
-  - [ ] Define result structure (success, data, error, metadata, timestamp)
-  - [ ] Add status codes (SUCCESS, PARTIAL_SUCCESS, FAILURE, TIMEOUT, RETRY_NEEDED)
-  - [ ] Add error categorization (NETWORK, SELECTOR_NOT_FOUND, INVALID_INPUT, PROVIDER_ERROR)
-  - [ ] Implement result normalization function
+- [ ] Create `src/services/TaskPlanner.js`
+  - [ ] Define planning prompt templates
+  - [ ] Integrate with AI API (OpenAI/Anthropic/Local)
+  - [ ] Convert goal to step sequence
+  - [ ] Generate appropriate selectors/strategies
+  - [ ] Add confidence scores to plans
+  - [ ] Implement plan validation
+  - [ ] Add caching for similar goals
   - [ ] Add JSDoc documentation
 
 ---
 
-## 2. Provider Interfaces & Base Implementation
+## 2. Advanced Retry & Fallback Strategies
 
-### 2.1 Base Provider Contract
+### 2.1 Retry Strategy Model
 
-- [ ] Create `src/data/providers/BaseProvider.js`
-  - [ ] Define provider interface (executeAction, canHandle, healthCheck, getName)
-  - [ ] Add capability flags (supports search, pagination, JavaScript, etc.)
-  - [ ] Define provider configuration schema
-  - [ ] Add abstract method definitions with JSDoc
-  - [ ] Create provider error classes (ProviderError, ActionNotSupportedError, etc.)
-
-### 2.2 Mock API Provider
-
-- [ ] Create `src/data/providers/MockApiProvider.js`
-  - [ ] Implement BaseProvider interface
-  - [ ] Add static mock response data for test scenarios
-  - [ ] Implement NAVIGATE action (return mock HTML structure)
-  - [ ] Implement SEARCH action (return mock search results)
-  - [ ] Implement EXTRACT_TEXT action (extract from mock data)
-  - [ ] Add simulated latency (configurable delay)
-  - [ ] Add success/failure simulation modes
-  - [ ] Add JSDoc documentation with usage examples
-
-### 2.3 Mock Scraper Provider
-
-- [ ] Create `src/data/providers/MockScraperProvider.js`
-  - [ ] Implement BaseProvider interface
-  - [ ] Use static HTML fixtures for testing
-  - [ ] Implement NAVIGATE action (load HTML fixture)
-  - [ ] Implement EXTRACT_TEXT action (use simple DOM parsing)
-  - [ ] Implement EXTRACT_ATTRIBUTE action
-  - [ ] Add selector engine (CSS selectors)
-  - [ ] Add error simulation for invalid selectors
+- [ ] Create `src/models/RetryStrategy.js`
+  - [ ] Define retry strategy types (exponential, linear, custom)
+  - [ ] Add max attempts per strategy
+  - [ ] Add delay calculation logic
+  - [ ] Add circuit breaker pattern
+  - [ ] Implement strategy selection criteria
   - [ ] Add JSDoc documentation
 
-### 2.4 Mock Browser Provider
+### 2.2 Fallback Chain Manager
 
-- [ ] Create `src/data/providers/MockBrowserProvider.js`
-  - [ ] Implement BaseProvider interface
-  - [ ] Simulate browser-like behavior without actual browser
-  - [ ] Implement NAVIGATE action (return simulated page state)
-  - [ ] Implement CLICK action (update simulated page state)
-  - [ ] Implement TYPE action
-  - [ ] Implement WAIT action (simulated delay)
-  - [ ] Add page state management (current URL, DOM snapshot)
+- [ ] Create `src/services/FallbackChainManager.js`
+  - [ ] Build fallback chains dynamically
+  - [ ] Track failure reasons per provider
+  - [ ] Implement smart fallback selection
+  - [ ] Add fallback exhaustion detection
+  - [ ] Provide fallback suggestions
   - [ ] Add JSDoc documentation
 
-### 2.5 Provider Registry
+### 2.3 Error Recovery System
 
-- [ ] Create `src/data/providers/ProviderRegistry.js`
-  - [ ] Implement provider registration system
-  - [ ] Add getProvider(strategyType) method
-  - [ ] Add getAllProviders() method
-  - [ ] Add provider health check aggregation
-  - [ ] Implement singleton pattern
+- [ ] Create `src/services/ErrorRecoveryService.js`
+  - [ ] Categorize errors by recoverability
+  - [ ] Implement recovery strategies per error type
+  - [ ] Add automatic retry with modified parameters
+  - [ ] Implement alternative selector finding
+  - [ ] Add recovery attempt logging
   - [ ] Add JSDoc documentation
 
 ---
 
-## 3. Strategy Selection Logic
+## 3. Progress Event System
 
-### 3.1 Strategy Selector Service
+### 3.1 Event Emitter Base
 
-- [ ] Create `src/services/StrategySelector.js`
-  - [ ] Implement selectStrategy(action, context) method
-  - [ ] Add priority-based selection (API → SCRAPER → BROWSER)
-  - [ ] Implement capability matching (action requirements vs provider capabilities)
-  - [ ] Add fallback logic (retry with next provider on failure)
-  - [ ] Add strategy override support (force specific provider)
-  - [ ] Implement provider health check integration
-  - [ ] Add logging for strategy decisions
+- [ ] Create `src/utils/EventEmitter.js`
+  - [ ] Implement event subscription
+  - [ ] Implement event emission
+  - [ ] Add event filtering by type
+  - [ ] Add event history tracking
+  - [ ] Implement unsubscribe mechanism
   - [ ] Add JSDoc documentation
 
-### 3.2 Strategy Execution Wrapper
+### 3.2 Progress Event Types
 
-- [ ] Create `src/services/StrategyExecutor.js`
-  - [ ] Implement executeWithStrategy(action, provider) method
-  - [ ] Add retry logic with exponential backoff
-  - [ ] Implement timeout handling
-  - [ ] Add result validation against expected schema
-  - [ ] Implement fallback to next strategy on failure
-  - [ ] Add execution metadata collection (duration, provider used, retry count)
+- [ ] Create `src/models/ProgressEvent.js`
+  - [ ] Define event types (TASK_STARTED, STEP_STARTED, STEP_COMPLETED, etc.)
+  - [ ] Add event payload schemas
+  - [ ] Implement event serialization
+  - [ ] Add timestamp to all events
+  - [ ] Add correlation IDs for tracking
   - [ ] Add JSDoc documentation
 
----
+### 3.3 Progress Tracker
 
-## 4. Core Automation Services
-
-### 4.1 Action Executor Service
-
-- [ ] Create `src/services/ActionExecutor.js`
-  - [ ] Implement executeAction(action, provider) method
-  - [ ] Add action validation before execution
-  - [ ] Implement parameter normalization
-  - [ ] Add result transformation to standard format
-  - [ ] Implement error handling with categorization
-  - [ ] Add execution logging
-  - [ ] Add JSDoc documentation
-
-### 4.2 Step Executor Service
-
-- [ ] Create `src/services/StepExecutor.js`
-  - [ ] Implement executeStep(step, context) method
-  - [ ] Add step validation
-  - [ ] Integrate StrategySelector for provider selection
-  - [ ] Integrate ActionExecutor for action execution
-  - [ ] Implement step result validation against expectedOutput
-  - [ ] Add context passing between steps
-  - [ ] Handle step failure conditions
-  - [ ] Add JSDoc documentation
-
-### 4.3 Task Executor Service
-
-- [ ] Create `src/services/TaskExecutor.js`
-  - [ ] Implement executeTask(task) method
-  - [ ] Add sequential step execution
-  - [ ] Implement state management (PENDING → RUNNING → COMPLETED/FAILED)
-  - [ ] Add step-level error handling (continue vs abort)
-  - [ ] Implement task pause/resume capability
-  - [ ] Add progress tracking (completed steps / total steps)
-  - [ ] Collect task-level execution metadata
-  - [ ] Add final result aggregation
+- [ ] Create `src/services/ProgressTracker.js`
+  - [ ] Track task progress in real-time
+  - [ ] Calculate completion percentage
+  - [ ] Estimate time remaining
+  - [ ] Emit progress events
+  - [ ] Store progress snapshots
+  - [ ] Provide progress query API
   - [ ] Add JSDoc documentation
 
 ---
 
-## 5. Data Access Layer (Repository Pattern)
+## 4. Task Templates & Patterns
 
-### 5.1 Task Repository
+### 4.1 Task Template Model
 
-- [ ] Create `src/data/repositories/TaskRepository.js`
-  - [ ] Implement saveTask(task) method
-  - [ ] Implement getTaskById(taskId) method
-  - [ ] Implement getAllTasks() method
-  - [ ] Implement updateTaskStatus(taskId, status) method
-  - [ ] Implement updateTaskStep(taskId, stepId, result) method
-  - [ ] Add in-memory storage provider (Map-based)
-  - [ ] Add JSON serialization/deserialization
+- [ ] Create `src/models/TaskTemplate.js`
+  - [ ] Define template structure (name, description, steps)
+  - [ ] Add parameter placeholders
+  - [ ] Implement template instantiation
+  - [ ] Add template validation
+  - [ ] Support nested templates
   - [ ] Add JSDoc documentation
 
-### 5.2 Execution History Repository
+### 4.2 Template Library
 
-- [ ] Create `src/data/repositories/ExecutionHistoryRepository.js`
-  - [ ] Implement saveExecution(taskId, execution) method
-  - [ ] Implement getExecutionsByTaskId(taskId) method
-  - [ ] Implement getLatestExecution(taskId) method
-  - [ ] Add in-memory storage provider
-  - [ ] Add execution replay support
-  - [ ] Add JSDoc documentation
+- [ ] Create `src/templates/` directory
+  - [ ] Create `priceComparison.template.js`
+  - [ ] Create `dataExtraction.template.js`
+  - [ ] Create `formFilling.template.js`
+  - [ ] Create `searchAndFilter.template.js`
+  - [ ] Create `pagination.template.js`
+  - [ ] Each template with examples
 
-### 5.3 In-Memory Storage Provider
+### 4.3 Template Registry
 
-- [ ] Create `src/data/providers/InMemoryStorageProvider.js`
-  - [ ] Implement key-value storage interface
-  - [ ] Add set(key, value) method
-  - [ ] Add get(key) method
-  - [ ] Add delete(key) method
-  - [ ] Add getAll() method
-  - [ ] Add clear() method
-  - [ ] Implement singleton pattern
+- [ ] Create `src/services/TemplateRegistry.js`
+  - [ ] Implement template registration
+  - [ ] Add template lookup by name
+  - [ ] Implement template search by intent
+  - [ ] Support custom user templates
+  - [ ] Add template versioning
   - [ ] Add JSDoc documentation
 
 ---
 
-## 6. Utilities & Helpers
+## 5. AI Integration Layer
 
-### 6.1 Data Normalization Utilities
+### 5.1 AI Provider Interface
 
-- [ ] Create `src/utils/dataNormalizer.js`
-  - [ ] Implement normalizeUrl(url) function
-  - [ ] Implement normalizeCurrency(amount, currency) function
-  - [ ] Implement normalizeDate(date) function
-  - [ ] Implement normalizeText(text) function (trim, collapse whitespace)
-  - [ ] Implement normalizeSearchQuery(query) function
+- [ ] Create `src/ai/BaseAIProvider.js`
+  - [ ] Define AI provider interface
+  - [ ] Add `generatePlan(goal)` method
+  - [ ] Add `suggestSelectors(html, intent)` method
+  - [ ] Add `recoverFromError(error, context)` method
+  - [ ] Implement rate limiting
   - [ ] Add JSDoc documentation
 
-### 6.2 Validation Utilities
+### 5.2 OpenAI Provider
 
-- [ ] Create `src/utils/validator.js`
-  - [ ] Implement validateAction(action) function
-  - [ ] Implement validateStep(step) function
-  - [ ] Implement validateTask(task) function
-  - [ ] Implement validateSchema(data, schema) function
-  - [ ] Add custom validation error class
-  - [ ] Add JSDoc documentation
-
-### 6.3 Serialization Utilities
-
-- [ ] Create `src/utils/serializer.js`
-  - [ ] Implement serializeTask(task) function
-  - [ ] Implement deserializeTask(json) function
-  - [ ] Implement serializeExecutionResult(result) function
-  - [ ] Implement deserializeExecutionResult(json) function
-  - [ ] Handle circular references
-  - [ ] Add JSDoc documentation
-
-### 6.4 Error Handling Utilities
-
-- [ ] Create `src/utils/errorHandler.js`
-  - [ ] Implement categorizeError(error) function
-  - [ ] Implement createErrorResult(error) function
-  - [ ] Implement isRetryableError(error) function
-  - [ ] Add custom error classes (AutomationError, ProviderError, ValidationError)
-  - [ ] Add error logging helper
-  - [ ] Add JSDoc documentation
-
-### 6.5 Mock Data Generator
-
-- [ ] Create `src/utils/mockDataGenerator.js`
-  - [ ] Implement generateMockSearchResults(query) function
-  - [ ] Implement generateMockProduct(productName) function
-  - [ ] Implement generateMockHtmlPage(url) function
-  - [ ] Add configurable randomization
-  - [ ] Add JSDoc documentation
-
----
-
-## 7. Reference Implementation: Price Comparison Task
-
-### 7.1 Task Definition
-
-- [ ] Create `src/examples/priceComparisonTask.js`
-  - [ ] Define task goal: "Find cheapest price for phone model"
-  - [ ] Create step 1: Normalize product name input
-  - [ ] Create step 2: Search marketplace A (mock API)
-  - [ ] Create step 3: Extract prices from marketplace A
-  - [ ] Create step 4: Search marketplace B (mock scraper)
-  - [ ] Create step 5: Extract prices from marketplace B
-  - [ ] Create step 6: Compare and select cheapest option
-  - [ ] Create step 7: Return final result with source
-  - [ ] Add complete task serialization
-  - [ ] Add JSDoc documentation
-
-### 7.2 Task Runner
-
-- [ ] Create `src/examples/runPriceComparison.js`
-  - [ ] Import all required services
-  - [ ] Initialize provider registry
-  - [ ] Register mock providers
-  - [ ] Load price comparison task
-  - [ ] Execute task using TaskExecutor
-  - [ ] Log execution progress
-  - [ ] Display final results
-  - [ ] Save execution history
+- [ ] Create `src/ai/OpenAIProvider.js`
+  - [ ] Implement BaseAIProvider
+  - [ ] Configure API key management
+  - [ ] Implement chat-based planning
+  - [ ] Add response parsing
   - [ ] Add error handling
+  - [ ] Implement token usage tracking
   - [ ] Add JSDoc documentation
 
-### 7.3 Mock Marketplace Data
+### 5.3 Prompt Engineering
 
-- [ ] Create `src/examples/mockMarketplaceData.js`
-  - [ ] Define mock product catalog
-  - [ ] Add price variations across marketplaces
-  - [ ] Include product metadata (name, specs, availability)
-  - [ ] Add currency variations
-  - [ ] Add timestamp data
+- [ ] Create `src/ai/prompts/` directory
+  - [ ] Create `taskPlanning.prompt.js`
+  - [ ] Create `selectorGeneration.prompt.js`
+  - [ ] Create `errorRecovery.prompt.js`
+  - [ ] Add few-shot examples
+  - [ ] Version control prompts
+  - [ ] Document prompt strategies
+
+---
+
+## 6. Enhanced Task Execution
+
+### 6.1 Update TaskExecutor
+
+- [ ] Modify `src/services/TaskExecutor.js`
+  - [ ] Integrate progress event emission
+  - [ ] Add retry strategy support
+  - [ ] Implement circuit breaker
+  - [ ] Add execution hooks (before/after step)
+  - [ ] Support dynamic step injection
+  - [ ] Add execution replay capability
+
+### 6.2 Execution Context Manager
+
+- [ ] Create `src/services/ExecutionContextManager.js`
+  - [ ] Maintain execution state
+  - [ ] Store step results for context
+  - [ ] Implement variable substitution
+  - [ ] Add context snapshots
+  - [ ] Support context branching
   - [ ] Add JSDoc documentation
 
 ---
 
-## 8. Testing Infrastructure
+## 7. Configuration & Settings
 
-### 8.1 Unit Tests - Models
+### 7.1 Orchestrator Configuration
 
-- [ ] Create `src/models/__tests__/AutomationAction.test.js`
-  - [ ] Test action creation with valid data
-  - [ ] Test action validation failures
-  - [ ] Test action type constraints
-  - [ ] Test parameter schema validation
-- [ ] Create `src/models/__tests__/AutomationStep.test.js`
-  - [ ] Test step creation
-  - [ ] Test step status transitions
-  - [ ] Test step validation
-- [ ] Create `src/models/__tests__/Task.test.js`
-  - [ ] Test task creation
-  - [ ] Test step addition
-  - [ ] Test state transitions
-  - [ ] Test serialization/deserialization
+- [ ] Create `src/config/orchestratorConfig.js`
+  - [ ] Define default retry strategies
+  - [ ] Set timeout configurations
+  - [ ] Configure AI provider settings
+  - [ ] Set event emission options
+  - [ ] Add environment-based overrides
 
-### 8.2 Unit Tests - Providers
+### 7.2 Feature Flags
 
-- [ ] Create `src/data/providers/__tests__/MockApiProvider.test.js`
-  - [ ] Test NAVIGATE action execution
-  - [ ] Test SEARCH action execution
-  - [ ] Test EXTRACT_TEXT action execution
+- [ ] Create `src/config/featureFlags.js`
+  - [ ] AI-powered planning toggle
+  - [ ] Advanced retry toggle
+  - [ ] Progress events toggle
+  - [ ] Template usage toggle
+  - [ ] Environment-based flags
+
+---
+
+## 8. Reference Implementations
+
+### 8.1 AI-Powered Price Comparison
+
+- [ ] Create `src/examples/aiPriceComparison.js`
+  - [ ] Use natural language goal
+  - [ ] AI generates task steps
+  - [ ] Execute with progress tracking
+  - [ ] Show event stream
+  - [ ] Compare with Phase 1 manual approach
+
+### 8.2 Multi-Site Data Extraction
+
+- [ ] Create `src/examples/multiSiteExtraction.js`
+  - [ ] Extract from 3+ different websites
+  - [ ] Use AI to find selectors
+  - [ ] Handle different page structures
+  - [ ] Aggregate results
+  - [ ] Show retry/fallback in action
+
+### 8.3 Form Automation Example
+
+- [ ] Create `src/examples/formAutomation.js`
+  - [ ] Fill multi-step form
+  - [ ] Handle validation errors
+  - [ ] Retry with corrections
+  - [ ] Track progress through steps
+  - [ ] Show success/failure paths
+
+---
+
+## 9. Testing Infrastructure
+
+### 9.1 Unit Tests - Orchestration
+
+- [ ] Create `src/services/__tests__/TaskOrchestrator.test.js`
+  - [ ] Test goal parsing
+  - [ ] Test task planning
+  - [ ] Test execution flow
+  - [ ] Test error scenarios
+- [ ] Create `src/services/__tests__/ProgressTracker.test.js`
+  - [ ] Test event emission
+  - [ ] Test progress calculation
+  - [ ] Test time estimation
+
+### 9.2 Integration Tests
+
+- [ ] Create `__tests__/integration/orchestration.test.js`
+  - [ ] Test end-to-end orchestration
+  - [ ] Test AI integration
+  - [ ] Test retry mechanisms
+  - [ ] Test progress tracking
+
+### 9.3 AI Provider Tests
+
+- [ ] Create `src/ai/__tests__/OpenAIProvider.test.js`
+  - [ ] Test with mock responses
+  - [ ] Test rate limiting
   - [ ] Test error handling
-  - [ ] Test capability flags
-- [ ] Create similar tests for MockScraperProvider and MockBrowserProvider
-
-### 8.3 Unit Tests - Services
-
-- [ ] Create `src/services/__tests__/ActionExecutor.test.js`
-  - [ ] Test successful action execution
-  - [ ] Test action validation failure
-  - [ ] Test provider error handling
-  - [ ] Test result transformation
-- [ ] Create `src/services/__tests__/StepExecutor.test.js`
-  - [ ] Test step execution with valid context
-  - [ ] Test strategy selection integration
-  - [ ] Test step failure handling
-  - [ ] Test result validation
-- [ ] Create `src/services/__tests__/TaskExecutor.test.js`
-  - [ ] Test complete task execution
-  - [ ] Test sequential step processing
-  - [ ] Test state transitions
-  - [ ] Test error propagation
-
-### 8.4 Integration Tests
-
-- [ ] Create `__tests__/integration/priceComparison.test.js`
-  - [ ] Test end-to-end price comparison task
-  - [ ] Verify deterministic execution (same input → same output)
-  - [ ] Test provider fallback mechanism
-  - [ ] Test task replay capability
-  - [ ] Verify result structure
-- [ ] Create `__tests__/integration/providerStrategy.test.js`
-  - [ ] Test API → Scraper → Browser fallback chain
-  - [ ] Test provider health check integration
-  - [ ] Test strategy override functionality
-
-### 8.5 Replay Tests (Determinism Validation)
-
-- [ ] Create `__tests__/replay/taskReplay.test.js`
-  - [ ] Execute same task multiple times
-  - [ ] Compare execution results for equality
-  - [ ] Verify step-by-step consistency
-  - [ ] Test with different provider availability scenarios
-
-### 8.6 Test Coverage
-
-- [ ] Set up Jest or similar test framework
-- [ ] Configure code coverage reporting
-- [ ] Achieve 80%+ coverage for models
-- [ ] Achieve 80%+ coverage for services
-- [ ] Achieve 70%+ coverage for providers
-- [ ] Generate coverage report
+  - [ ] Test token counting
 
 ---
 
-## 9. Documentation
+## 10. Documentation
 
-### 9.1 Code Documentation
+### 10.1 Architecture Documentation
 
-- [ ] Add JSDoc to all public methods
-- [ ] Add usage examples in JSDoc comments
-- [ ] Document all model schemas
-- [ ] Document provider capabilities
-- [ ] Document error types and handling
+- [ ] Create `docs/architecture/phase2_orchestration.md`
+  - [ ] Orchestration flow diagrams
+  - [ ] AI integration architecture
+  - [ ] Event system architecture
+  - [ ] Retry/fallback strategies
 
-### 9.2 Architecture Documentation
+### 10.2 API Documentation
 
-- [ ] Create `docs/architecture/phase1_overview.md`
-  - [ ] Diagram: layered architecture
-  - [ ] Diagram: provider strategy flow
-  - [ ] Diagram: task execution lifecycle
-  - [ ] Explain design decisions
-- [ ] Create `docs/architecture/provider_model.md`
-  - [ ] Explain provider abstraction
-  - [ ] Document provider interface
-  - [ ] Show provider registration flow
-  - [ ] Include adding new providers guide
+- [ ] Create `docs/api/task_orchestrator.md`
+  - [ ] TaskOrchestrator API
+  - [ ] Progress event types
+  - [ ] Template format specification
+  - [ ] AI provider interface
 
-### 9.3 API Documentation
+### 10.3 Usage Guides
 
-- [ ] Create `docs/api/action_executor.md`
-  - [ ] Document all action types
-  - [ ] Show input/output examples
-  - [ ] List error scenarios
-- [ ] Create `docs/api/task_executor.md`
-  - [ ] Document task structure
-  - [ ] Show task creation examples
-  - [ ] Explain state transitions
-  - [ ] Document execution options
-
-### 9.4 Usage Examples
-
-- [ ] Create `docs/examples/creating_a_task.md`
-  - [ ] Step-by-step task creation
-  - [ ] Show step definition
-  - [ ] Explain action types
-- [ ] Create `docs/examples/custom_provider.md`
-  - [ ] Guide to creating custom providers
-  - [ ] Show provider registration
-  - [ ] Explain capability declaration
+- [ ] Create `docs/guides/using_ai_planning.md`
+  - [ ] How to write effective goals
+  - [ ] Understanding AI-generated plans
+  - [ ] Customizing plans
+  - [ ] Debugging AI planning
 
 ---
 
-## 10. Exit Criteria Validation
+## 11. Exit Criteria Validation
 
-### 10.1 Functional Requirements
+### 11.1 Functional Requirements
 
-- [ ] ✅ Automation works without UI
-  - [ ] Run price comparison task via Node.js script
-  - [ ] Verify no browser window opens
-  - [ ] Verify no user interaction required
-- [ ] ✅ Providers are swappable
-  - [ ] Remove MockApiProvider, verify fallback to MockScraperProvider
-  - [ ] Test with only MockBrowserProvider enabled
-  - [ ] Verify task still completes successfully
-- [ ] ✅ Execution is replayable
-  - [ ] Run same task 10 times
-  - [ ] Verify identical results
-  - [ ] Verify identical step execution order
-- [ ] ✅ No permissions exist
-  - [ ] Verify no permission checks in code
-  - [ ] grep for "permission", "auth", "role" - should find none
-- [ ] ✅ No authentication exists
-  - [ ] Verify no auth logic in code
-  - [ ] Verify tasks execute without credentials
+- [ ] ✅ AI converts goals to tasks
+  - [ ] Test with 5+ different goal types
+  - [ ] Verify correct step generation
+  - [ ] Validate selector suggestions
+- [ ] ✅ Retry strategies work
+  - [ ] Test exponential backoff
+  - [ ] Test circuit breaker
+  - [ ] Test fallback chains
+- [ ] ✅ Progress tracking works
+  - [ ] Events emitted correctly
+  - [ ] Progress calculation accurate
+  - [ ] Time estimation reasonable
+- [ ] ✅ Templates are reusable
+  - [ ] Create task from template
+  - [ ] Customize with parameters
+  - [ ] Execute successfully
 
-### 10.2 Code Quality Checks
+### 11.2 Code Quality
 
 - [ ] ✅ All ESLint rules pass
-  - [ ] Run `npm run lint`
-  - [ ] Fix all violations
-- [ ] ✅ No layer violations
-  - [ ] Controllers don't import providers directly
-  - [ ] Services don't import repositories directly (use abstractions)
-- [ ] ✅ All tests pass
-  - [ ] Run full test suite
-  - [ ] Verify 80%+ coverage
-- [ ] ✅ No console.log statements (except in examples)
-  - [ ] Search and remove debug logs
-  - [ ] Use proper logging utility
+- [ ] ✅ 80%+ test coverage
+- [ ] ✅ All JSDoc complete
+- [ ] ✅ No architectural violations
 
-### 10.3 Architectural Validation
+### 11.3 Acceptance Test
 
-- [ ] ✅ Single Responsibility Principle verified
-  - [ ] Review each file for single responsibility
-  - [ ] Refactor any multi-purpose files
-- [ ] ✅ Dependency Inversion verified
-  - [ ] Services depend on abstractions, not implementations
-  - [ ] Providers are injected, not imported directly
-- [ ] ✅ One change → One place
-  - [ ] Test: Change API provider behavior
-  - [ ] Verify only MockApiProvider.js changes
-  - [ ] Test: Add new action type
-  - [ ] Verify only AutomationAction.js and relevant executor changes
-
-### 10.4 Acceptance Test
-
-- [ ] ✅ Run price comparison reference task
-  - [ ] Input: "iPhone 14 Pro"
-  - [ ] Verify searches multiple marketplaces
-  - [ ] Verify price extraction
-  - [ ] Verify comparison logic
-  - [ ] Verify correct cheapest price returned
-  - [ ] Verify execution completes in < 10 seconds
-  - [ ] Verify same result on repeat execution
+- [ ] ✅ Run AI-powered price comparison
+  - [ ] Input: Natural language goal
+  - [ ] AI generates steps automatically
+  - [ ] Executes successfully
+  - [ ] Progress tracked in real-time
+  - [ ] Results match Phase 1 accuracy
 
 ---
 
-## Phase 1 Success Metrics
+## Phase 2 Success Metrics
 
-**Phase 1 is complete when:**
+**Phase 2 is complete when:**
 
-- All checkboxes above are marked `[x]`
-- Price comparison task runs successfully without UI
+- User can provide natural language goals
+- AI generates executable task plans
+- Advanced retry/fallback works automatically
+- Real-time progress events stream correctly
+- Templates accelerate common tasks
 - All tests pass with 80%+ coverage
-- ESLint shows zero violations
-- Documentation is complete and accurate
-- No auth, no permissions, no database, no UI
-- Architecture allows swapping any provider with one file change
+- Acceptance test demonstrates AI orchestration
 
-**Ready for Phase 2:** Task Orchestration Engine
+**Ready for Phase 3:** User Interaction Loop (pause for input, resume safely)
